@@ -286,4 +286,102 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-*Note: The GIF images used in this README are for illustration purposes and are sourced from Wikipedia under Creative Commons license.* 
+*Note: The GIF images used in this README are for illustration purposes and are sourced from Wikipedia under Creative Commons license.*
+
+# 4-Stroke Engine Cycle Simulation
+
+This project simulates a 4-stroke internal combustion engine cycle with realistic thermodynamic modeling. It generates temperature and pressure data throughout the cycle, accounting for various real-world effects.
+
+## Features
+
+### Engine Parameters
+- Compression Ratio: 10:1
+- Engine Speed: 1200 RPM (configurable)
+- Initial Conditions: 25°C, 1 atm
+- Combustion Timing: 5° BTDC
+- Combustion Duration: 40° crank angle
+
+### Thermodynamic Models
+1. **Compression Stroke**
+   - Polytropic compression (n = 1.35)
+   - Heat transfer to cylinder walls
+
+2. **Combustion Process**
+   - Wiebe function for heat release
+   - Variable specific heat ratio (γ = 1.38 - 1.30)
+   - Temperature-dependent heat losses
+   - Peak temperature ~2500°C
+   - Peak pressure ~70 bar
+
+3. **Expansion Stroke**
+   - Variable polytropic expansion
+   - Continuous heat transfer modeling
+   - Temperature-dependent properties
+
+4. **Exhaust Stroke**
+   - Two-phase model (blowdown + displacement)
+   - Smooth pressure decay
+   - Realistic residual gas effects
+
+## Files Description
+
+1. `engine_simulation.py`
+   - Core engine cycle simulation
+   - Thermodynamic calculations
+   - Temperature and pressure modeling
+
+2. `generate_data.py`
+   - Generates Excel files with cycle data
+   - Precise timing calculations
+   - Two output formats:
+     * Detailed (1° intervals)
+     * Sampled (10° intervals)
+
+3. `visualization.py`
+   - Creates detailed cycle plots
+   - Shows all 4 strokes
+   - Marks key events (combustion, valve timing)
+
+## Data Output
+
+The simulation generates two Excel files:
+
+1. `engine_data_1200rpm_detailed.xlsx`
+   - Data at every crank angle degree
+   - 720 data points per cycle
+   - Time precision: 0.0001 seconds
+
+2. `engine_data_1200rpm_10deg.xlsx`
+   - Data every 10 crank angle degrees
+   - 72 data points per cycle
+   - Simplified overview
+
+### Data Columns
+- Time (s): Precise timing in seconds (4 decimal places)
+- Crank Angle (deg): 0-720 degrees
+- Temperature (°C): Cycle temperatures
+- Pressure (bar): Cycle pressures
+
+## Usage
+
+1. Run the simulation:
+   ```bash
+   python generate_data.py
+   ```
+
+2. View the cycle plots:
+   ```bash
+   python visualization.py
+   ```
+
+## Cycle Timing (at 1200 RPM)
+- Total cycle time: 0.1000 seconds (2 revolutions)
+- Time per revolution: 0.0500 seconds
+- Time per degree: 0.0001389 seconds
+
+## Notes
+- All temperatures are in Celsius
+- Pressures are in bar (1 bar = 100 kPa)
+- Time calculations account for engine speed
+- Heat transfer effects are simplified but realistic
+- Valve timing effects are included 
