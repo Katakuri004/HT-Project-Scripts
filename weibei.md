@@ -9,7 +9,9 @@ This document explains how to use the **Weibe function** to determine the **time
 The **Weibe function** models the **fuel burn fraction** during combustion:
 
 \(
-x_b(	heta) = 1 - \exp \left[ -a \left(rac{	heta - 	heta_{	ext{start}}}{	heta_{	ext{comb}} - 	heta_{	ext{start}}}ight)^m ight]
+x_b(	heta) = 1 - \exp \left[ -a \left(rac{	heta - 	heta_{	ext{start}}}{	heta_{	ext{comb}} - 	heta_{	ext{start}}}
+ight)^m 
+ight]
 \)
 
 Where:
@@ -28,7 +30,9 @@ Where:
 For **any crank angle \( 	heta \)** between \( 360^\circ \) and \( 390^\circ \):
 
 \(
-x_b(	heta) = 1 - \exp \left[ -5 \left(rac{	heta - 360}{390 - 360}ight)^2 ight]
+x_b(	heta) = 1 - \exp \left[ -5 \left(rac{	heta - 360}{390 - 360}
+ight)^2 
+ight]
 \)
 
 ✅ **Example at \( 	heta = 375^\circ \):**  
@@ -107,4 +111,3 @@ print(f"Temperature = {T_test:.2f} K")
 ✅ It helps in **determining pressure and temperature** at **any crank angle**.  
 ✅ Used extensively in **engine simulations (MATLAB, ANSYS, GT-Power, Python, etc.)**.
 
-🚀 **Now you have a complete method to compute pressure & temperature using the Weibe function!**
