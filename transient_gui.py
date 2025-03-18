@@ -22,15 +22,22 @@ class EngineSimulationGUI:
         
         # Number of steps input with range info
         ttk.Label(self.input_frame, text="Number of Steps (n) [10-720]:").grid(row=0, column=0, padx=5)
-        
-        # Create and configure entry widget without immediate validation
         self.n_steps = ttk.Entry(self.input_frame, width=10)
         self.n_steps.grid(row=0, column=1, padx=5)
         self.n_steps.insert(0, "72")  # Default value (every 10 degrees)
         
-        # Add description label
+        # Add RPM input
+        ttk.Label(self.input_frame, text="Engine Speed (RPM):").grid(row=0, column=3, padx=5)
+        self.rpm_entry = ttk.Entry(self.input_frame, width=10)
+        self.rpm_entry.grid(row=0, column=4, padx=5)
+        self.rpm_entry.insert(0, "1200")  # Default RPM
+        
+        # Add description labels
         description = "n = number of equidistant points (e.g., 720 = every 1°, 72 = every 10°)"
         ttk.Label(self.input_frame, text=description, font=('Arial', 8)).grid(row=1, column=0, columnspan=3, pady=(0,5))
+        
+        rpm_desc = "Engine speed affects time calculations"
+        ttk.Label(self.input_frame, text=rpm_desc, font=('Arial', 8)).grid(row=1, column=3, columnspan=2, pady=(0,5))
         
         # Generate button
         self.generate_btn = ttk.Button(self.input_frame, text="Generate", command=self.generate_data)
@@ -49,17 +56,35 @@ class EngineSimulationGUI:
         self.temperature_data = None
         self.pressure_data = None
         self.angle_data = None
+        self.time_data = None
+        self.rpm = None
+
+    def calculate_time_data(self):
+        """Calculate time data based on crank angle and RPM"""
+        if self.rpm and self.angle_data is not None:
+            # Time for one complete cycle (2 revolutions for 4-stroke)
+            cycle_time = (60 / self.rpm) * 2  # seconds
+            # Calculate time for each angle
+            self.time_data = self.angle_data * cycle_time / 720
 
     def generate_data(self):
         try:
             # Get and validate input
             value = self.n_steps.get()
             if not value.isdigit():
-                raise ValueError("Please enter a valid number")
+                raise ValueError("Please enter a valid number for steps")
+            
+            rpm_value = self.rpm_entry.get()
+            if not rpm_value.isdigit():
+                raise ValueError("Please enter a valid number for RPM")
             
             n = int(value)
+            self.rpm = int(rpm_value)
+            
             if n < 10 or n > 720:
                 raise ValueError("Number of steps must be between 10 and 720")
+            if self.rpm < 1:
+                raise ValueError("RPM must be positive")
             
             # First get high-resolution data
             angles_full, temps_full, press_full = calculate_engine_cycle(n_points=720)
@@ -71,6 +96,9 @@ class EngineSimulationGUI:
             # Interpolate temperature and pressure data
             self.temperature_data = np.interp(self.angle_data, angles_full, temps_full)
             self.pressure_data = np.interp(self.angle_data, angles_full, press_full)
+            
+            # Calculate time data
+            self.calculate_time_data()
             
             # Update plots
             self.update_plots()
@@ -147,8 +175,9 @@ class EngineSimulationGUI:
             return
             
         try:
-            # Create DataFrame
+            # Create DataFrame with time data
             df = pd.DataFrame({
+                'Time (s)': self.time_data,
                 'Crank Angle (degrees)': self.angle_data,
                 'Temperature (°C)': self.temperature_data,
                 'Pressure (bar)': self.pressure_data / 1e5
@@ -158,9 +187,20 @@ class EngineSimulationGUI:
             n = len(self.angle_data)
             step_size = 720 / n
             
-            # Save to Excel with step size in filename
-            filename = f"engine_cycle_data_{step_size:.1f}deg_step.xlsx"
-            df.to_excel(filename, index=False)
+            # Save to Excel with step size and RPM in filename
+            filename = f"engine_cycle_data_{step_size:.1f}deg_step_{self.rpm}rpm.xlsx"
+            
+            # Configure Excel writer to format time with 4 decimal places
+            with pd.ExcelWriter(filename, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+                worksheet = writer.sheets['Sheet1']
+                # Format time column to 4 decimal places
+                for idx, col in enumerate(df.columns):
+                    if col == 'Time (s)':
+                        for row in range(2, len(df) + 2):  # Excel is 1-indexed and has header
+                            cell = worksheet.cell(row=row, column=idx+1)
+                            cell.number_format = '0.0000'
+            
             messagebox.showinfo("Success", f"Data saved to {filename}")
             
         except Exception as e:
